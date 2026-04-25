@@ -9,6 +9,9 @@ $products = [
         "price" => 15000,
         "original_price" => 20000,
         "farmer" => "Pak Budi",
+        "location" => "Lembang, Bandung",
+        "rating" => 4.8,
+        "sold" => 120,
         "image" => "assets/images/product_tomato.png",
         "badge" => "Diskon 25%"
     ],
@@ -19,6 +22,9 @@ $products = [
         "price" => 12000,
         "original_price" => null,
         "farmer" => "Bu Siti",
+        "location" => "Berastagi, Karo",
+        "rating" => 4.9,
+        "sold" => 340,
         "image" => "assets/images/product_carrot.png",
         "badge" => "Terlaris"
     ],
@@ -29,6 +35,9 @@ $products = [
         "price" => 8000,
         "original_price" => 10000,
         "farmer" => "Kang Dadan",
+        "location" => "Cisarua, Bogor",
+        "rating" => 4.7,
+        "sold" => 85,
         "image" => "assets/images/product_spinach.png",
         "badge" => null
     ],
@@ -39,6 +48,9 @@ $products = [
         "price" => 35000,
         "original_price" => 45000,
         "farmer" => "Pak Tono",
+        "location" => "Batu, Malang",
+        "rating" => 4.9,
+        "sold" => 210,
         "image" => "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?q=80&w=600&auto=format&fit=crop",
         "badge" => null
     ],
@@ -49,6 +61,9 @@ $products = [
         "price" => 45000,
         "original_price" => 50000,
         "farmer" => "Koperasi Tani Makmur",
+        "location" => "Cianjur, Jabar",
+        "rating" => 4.6,
+        "sold" => 500,
         "image" => "https://images.unsplash.com/photo-1586201375761-83865001e8ac?q=80&w=600&auto=format&fit=crop",
         "badge" => null
     ],
@@ -140,38 +155,87 @@ function formatRupiah($angka) {
         <?php endforeach; ?>
     </div>
 
-    <!-- Products -->
-    <div class="section-header">
-        <h2 class="section-title">Panen Hari Ini</h2>
-        <a href="#" style="color: var(--primary-color); font-weight: 600;">Lihat Semua</a>
-    </div>
-    <div class="products">
-        <?php foreach($products as $prod): ?>
-        <div class="product-card">
-            <div class="product-img-wrapper">
-                <img src="<?php echo htmlspecialchars($prod['image']); ?>" alt="<?php echo htmlspecialchars($prod['name']); ?>" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Panenly'">
+    <!-- Catalog Section with Sidebar -->
+    <div class="catalog-section">
+        <!-- Sidebar Filter -->
+        <aside class="sidebar-filter">
+            <h3>Filter Produk</h3>
+            <div class="filter-group">
+                <h4>Lokasi</h4>
+                <select class="filter-select">
+                    <option>Semua Lokasi</option>
+                    <option>Bandung</option>
+                    <option>Bogor</option>
+                    <option>Malang</option>
+                    <option>Karo</option>
+                </select>
             </div>
-            <div class="product-info">
-                <span class="product-weight"><?php echo htmlspecialchars($prod['weight']); ?></span>
-                <h3 class="product-title"><?php echo htmlspecialchars($prod['name']); ?></h3>
-                <div class="product-meta">
-                    <span class="farmer-name"><i class="fa-solid fa-tractor"></i> <?php echo htmlspecialchars($prod['farmer']); ?></span>
+            <div class="filter-group">
+                <h4>Harga</h4>
+                <div class="price-range">
+                    <input type="number" placeholder="Min" class="filter-input">
+                    <span>-</span>
+                    <input type="number" placeholder="Max" class="filter-input">
                 </div>
-                
-                <div class="product-price">
-                    <?php echo formatRupiah($prod['price']); ?>
-                    <?php if($prod['original_price']): ?>
-                        <del><?php echo formatRupiah($prod['original_price']); ?></del>
-                    <?php endif; ?>
+            </div>
+            <div class="filter-group">
+                <h4>Kategori Komoditas</h4>
+                <label><input type="checkbox"> Sayuran</label>
+                <label><input type="checkbox"> Buah-buahan</label>
+                <label><input type="checkbox"> Beras & Biji</label>
+            </div>
+            <div class="filter-group">
+                <h4>Rating Minimal</h4>
+                <select class="filter-select">
+                    <option>Semua Bintang</option>
+                    <option>4 Bintang ke atas</option>
+                    <option>3 Bintang ke atas</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%; margin-top: 1rem;">Terapkan Filter</button>
+        </aside>
+
+        <!-- Products List -->
+        <div class="catalog-content">
+            <div class="section-header" style="padding: 0; margin-bottom: 1.5rem;">
+                <h2 class="section-title">Katalog Produk</h2>
+            </div>
+            <div class="products">
+                <?php foreach($products as $prod): ?>
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <?php if($prod['badge']): ?>
+                            <div class="product-badge" style="position: absolute; top: 10px; right: 10px; background: var(--secondary-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; z-index: 10;"><?php echo htmlspecialchars($prod['badge']); ?></div>
+                        <?php endif; ?>
+                        <img src="<?php echo htmlspecialchars($prod['image']); ?>" alt="<?php echo htmlspecialchars($prod['name']); ?>" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Panenly'">
+                    </div>
+                    <div class="product-info">
+                        <span class="product-weight"><?php echo htmlspecialchars($prod['weight']); ?></span>
+                        <h3 class="product-title"><?php echo htmlspecialchars($prod['name']); ?></h3>
+                        <div class="product-meta" style="flex-wrap: wrap; margin-bottom: 0.25rem;">
+                            <span class="farmer-name"><i class="fa-solid fa-tractor"></i> <?php echo htmlspecialchars($prod['farmer']); ?></span>
+                            <span class="product-rating" style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-star" style="color: #f59e0b;"></i> <?php echo htmlspecialchars($prod['rating']); ?> | <?php echo htmlspecialchars($prod['sold']); ?> terjual</span>
+                        </div>
+                        <div class="product-location" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--primary-color);"></i> <?php echo htmlspecialchars($prod['location']); ?>
+                        </div>
+                        
+                        <div class="product-price">
+                            <?php echo formatRupiah($prod['price']); ?>
+                            <?php if($prod['original_price']): ?>
+                                <del><?php echo formatRupiah($prod['original_price']); ?></del>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="product-actions">
+                            <button class="btn-add" title="Tambah ke Keranjang"><i class="fa-solid fa-cart-plus"></i></button>
+                            <button class="btn-buy" onclick="window.location.href='product.php?id=<?php echo $prod['id']; ?>'">Beli Langsung</button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="product-actions">
-                    <button class="btn-add" title="Tambah ke Keranjang"><i class="fa-solid fa-cart-plus"></i></button>
-                    <button class="btn-buy">Beli Langsung</button>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
-        <?php endforeach; ?>
     </div>
 
     <!-- Footer -->
