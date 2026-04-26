@@ -2,36 +2,69 @@ document.addEventListener("DOMContentLoaded", () => {
     const addButtons = document.querySelectorAll(".btn-add");
     const cartBadge = document.querySelector(".cart-badge");
 
-    let cartCount = parseInt(cartBadge.innerText);
-
     addButtons.forEach(button => {
         button.addEventListener("click", function(e) {
             e.preventDefault();
-            cartCount++;
-            cartBadge.innerText = cartCount;
-
-            // Micro animation
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fa-solid fa-check"></i>';
-            this.style.backgroundColor = "var(--primary-color)";
-            this.style.color = "white";
-
-            // Ripple/Scale effect on cart icon
-            const cartIcon = document.querySelector(".cart-icon");
-            if (cartIcon) {
-                cartIcon.style.transform = "scale(1.2)";
-                setTimeout(() => {
-                    cartIcon.style.transform = "scale(1)";
-                }, 200);
-            }
-
-            setTimeout(() => {
-                this.innerHTML = originalHTML;
-                this.style.backgroundColor = "var(--white)";
-                this.style.color = "var(--primary-color)";
-            }, 1500);
+            
+            const productId = this.getAttribute('data-product-id');
+            if (!productId) return;
+            
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            fetch('/Agri/api/cart.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'action=add&product_id=' + productId + '&quantity=1'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                
+                if (data.success) {
+                    // Success animation
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    btn.style.backgroundColor = "var(--primary-color)";
+                    btn.style.color = "white";
+                    
+                    // Update cart badge
+                    if (cartBadge) {
+                        cartBadge.innerText = data.cart_count;
+                    }
+                    
+                    // Ripple effect on cart icon
+                    const cartIcon = document.querySelector(".cart-icon");
+                    if (cartIcon) {
+                        cartIcon.style.transform = "scale(1.2)";
+                        setTimeout(() => {
+                            cartIcon.style.transform = "scale(1)";
+                        }, 200);
+                    }
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.style.backgroundColor = "var(--white)";
+                        btn.style.color = "var(--primary-color)";
+                        btn.disabled = false;
+                    }, 1500);
+                } else {
+                    alert(data.message);
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error('Cart error:', err);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            });
         });
     });
-
-    // Smooth scroll functionality could go here
 });

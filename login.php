@@ -1,3 +1,46 @@
+<?php
+require_once __DIR__ . '/includes/helpers.php';
+require_once __DIR__ . '/includes/auth.php';
+
+// If already logged in, redirect
+if (isLoggedIn()) {
+    $role = $_SESSION['role'];
+    if ($role === 'admin') {
+        header('Location: ' . BASE_URL . '/admin/dashboard.php');
+    } elseif ($role === 'seller') {
+        header('Location: ' . BASE_URL . '/seller/dashboard.php');
+    } else {
+        header('Location: ' . BASE_URL . '/index.php');
+    }
+    exit;
+}
+
+// Handle login form submission
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    
+    if (empty($email) || empty($password)) {
+        $error = 'Email dan kata sandi harus diisi.';
+    } else {
+        $result = loginUser($email, $password);
+        if ($result['success']) {
+            $user = $result['user'];
+            if ($user['role'] === 'admin') {
+                header('Location: ' . BASE_URL . '/admin/dashboard.php');
+            } elseif ($user['role'] === 'seller') {
+                header('Location: ' . BASE_URL . '/seller/dashboard.php');
+            } else {
+                header('Location: ' . BASE_URL . '/index.php');
+            }
+            exit;
+        } else {
+            $error = $result['message'];
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -47,6 +90,7 @@
             font-family: inherit;
             outline: none;
             transition: var(--transition);
+            box-sizing: border-box;
         }
         .form-control:focus {
             border-color: var(--primary-color);
@@ -68,6 +112,15 @@
             padding: 0.8rem;
             font-size: 1rem;
         }
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -77,18 +130,25 @@
                 <i class="fa-solid fa-leaf"></i> Panenly
             </div>
             <h2>Selamat Datang Kembali</h2>
-            <form action="#" method="POST" id="loginForm">
+            
+            <?php if ($error): ?>
+                <div class="error-msg"><?= sanitize($error) ?></div>
+            <?php endif; ?>
+            
+            <?= renderFlash() ?>
+            
+            <form action="" method="POST" id="loginForm">
                 <div class="form-group">
-                    <label>Email (Ketik 'admin' atau 'seller' untuk testing)</label>
-                    <input type="text" id="email" class="form-control" placeholder="Masukkan email anda" required>
+                    <label>Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="Masukkan email anda" required value="<?= sanitize($_POST['email'] ?? '') ?>">
                 </div>
                 <div class="form-group">
                     <label>Kata Sandi</label>
-                    <input type="password" id="password" class="form-control" placeholder="Masukkan kata sandi" required>
+                    <input type="password" name="password" class="form-control" placeholder="Masukkan kata sandi" required>
                 </div>
                 <div class="auth-links">
                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" style="accent-color: var(--primary-color);"> Ingat Saya
+                        <input type="checkbox" name="remember" style="accent-color: var(--primary-color);"> Ingat Saya
                     </label>
                     <a href="#">Lupa sandi?</a>
                 </div>
@@ -99,22 +159,5 @@
             </p>
         </div>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Mock logic
-            const email = document.getElementById('email').value.toLowerCase();
-            if(email.includes('admin')) {
-                localStorage.setItem('userRole', 'admin');
-                window.location.href = 'admin/dashboard.php';
-            } else if(email.includes('seller')) {
-                localStorage.setItem('userRole', 'seller');
-                window.location.href = 'seller/dashboard.php';
-            } else {
-                localStorage.setItem('userRole', 'buyer');
-                window.location.href = 'index.php';
-            }
-        });
-    </script>
 </body>
 </html>
