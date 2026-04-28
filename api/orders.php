@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Orders API
+ * Freshly - Orders API
  * Handles order status updates (for sellers)
  * 
  * POST: Update order status
@@ -25,7 +25,7 @@ switch ($action) {
         $location = trim($_POST['location'] ?? '');
         $statusText = trim($_POST['status_text'] ?? '');
         
-        $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'completed'];
+        $allowedStatuses = ['pending', 'processing', 'packing', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'];
         if (!in_array($newStatus, $allowedStatuses)) {
             echo json_encode(['success' => false, 'message' => 'Status tidak valid.']);
             exit;

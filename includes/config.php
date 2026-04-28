@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Database Configuration
+ * Freshly - Database Configuration
  * Connects to XAMPP MySQL (MariaDB) using PDO
  */
 
@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Database credentials (XAMPP default)
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'panenly');
+define('DB_NAME', 'freshly');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_PORT', 3306);
@@ -28,8 +28,12 @@ define('BASE_URL', '/Agri');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/products/');
 define('UPLOAD_URL', BASE_URL . '/uploads/products/');
 
-// Max upload size (2MB)
-define('MAX_UPLOAD_SIZE', 2 * 1024 * 1024);
+// Max upload size (5MB)
+define('MAX_UPLOAD_SIZE', 5 * 1024 * 1024);
+
+// Set PHP upload limits
+@ini_set('upload_max_filesize', '5M');
+@ini_set('post_max_size', '10M');
 
 // Allowed image types
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/webp', 'image/gif']);

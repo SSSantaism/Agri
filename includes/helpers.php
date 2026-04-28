@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Helper Functions
+ * Freshly - Helper Functions
  */
 
 require_once __DIR__ . '/config.php';
@@ -115,14 +115,14 @@ function sanitize(string $input): string {
  * Generate unique order number
  */
 function generateOrderNumber(): string {
-    return 'PNL-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    return 'FRS-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 }
 
 /**
  * Generate tracking number
  */
 function generateTrackingNumber(): string {
-    return 'PNL-' . mt_rand(1000000000, 9999999999);
+    return 'FRS-' . mt_rand(1000000000, 9999999999);
 }
 
 /**

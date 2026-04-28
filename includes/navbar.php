@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Reusable Navbar Component
+ * Freshly - Reusable Navbar Component
  * Include this in pages: <?php include __DIR__ . '/includes/navbar.php'; ? >
  * 
  * Variables available before include:
@@ -17,7 +17,7 @@ $userRole = $_SESSION['role'] ?? '';
 
 <nav class="navbar">
     <a href="<?= BASE_URL ?>/index.php" class="nav-brand">
-        <i class="fa-solid fa-leaf"></i> Panenly
+        <i class="fa-solid fa-leaf"></i> Freshly
     </a>
     
     <?php if ($navbarType === 'full'): ?>

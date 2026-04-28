@@ -1,18 +1,18 @@
 -- =============================================
--- Panenly E-Commerce Database Schema
+-- Freshly E-Commerce Database Schema
 -- XAMPP MySQL (MariaDB)
 -- =============================================
 
 SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 
-DROP DATABASE IF EXISTS panenly;
+DROP DATABASE IF EXISTS freshly;
 
-CREATE DATABASE panenly
+CREATE DATABASE freshly
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE panenly;
+USE freshly;
 
 -- =============================================
 -- USERS TABLE
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS orders (
     subtotal INT NOT NULL DEFAULT 0,
     shipping_cost INT NOT NULL DEFAULT 15000,
     total INT NOT NULL DEFAULT 0,
-    status ENUM('pending', 'processing', 'shipped', 'delivered', 'completed') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'processing', 'packing', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
     tracking_number VARCHAR(30) DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -155,11 +155,13 @@ CREATE TABLE IF NOT EXISTS messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
+    product_id INT DEFAULT NULL,
     message TEXT NOT NULL,
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- =============================================

@@ -1,16 +1,16 @@
 <?php
 /**
- * Panenly - Reusable Footer Component
+ * Freshly - Reusable Footer Component
  */
 ?>
 <footer>
     <div class="footer-grid">
         <div>
-            <div class="footer-brand"><i class="fa-solid fa-leaf"></i> Panenly</div>
+            <div class="footer-brand"><i class="fa-solid fa-leaf"></i> Freshly</div>
             <p class="footer-desc">Menjembatani petani lokal langsung ke tangan Anda. Sayuran lebih segar, harga lebih jujur.</p>
         </div>
         <div>
-            <h4 class="footer-title">Panenly</h4>
+            <h4 class="footer-title">Freshly</h4>
             <ul class="footer-links">
                 <li><a href="<?= BASE_URL ?>/catalog.php">Katalog Produk</a></li>
                 <li><a href="#">Tentang Kami</a></li>
@@ -39,6 +39,6 @@
         </div>
     </div>
     <div class="footer-bottom">
-        &copy; <?= date("Y") ?> Panenly. All rights reserved.
+        &copy; <?= date("Y") ?> Freshly. All rights reserved.
     </div>
 </footer>

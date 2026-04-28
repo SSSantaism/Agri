@@ -43,14 +43,24 @@ $stmt = $db->prepare("
 $stmt->execute([$sellerId]);
 $recentOrders = $stmt->fetchAll();
 
-$statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','shipped'=>'Dikirim','delivered'=>'Sampai','completed'=>'Selesai'];
+$statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','packing'=>'Dikemas','ready_to_ship'=>'Siap Dikirim','shipped'=>'Sedang Dikirim','delivered'=>'Sampai','completed'=>'Selesai','cancelled'=>'Dibatalkan'];
+$statusColors = [
+    'pending'=>'background:rgba(245,158,11,0.1);color:#b45309;',
+    'processing'=>'background:rgba(59,130,246,0.1);color:#1d4ed8;',
+    'packing'=>'background:rgba(168,85,247,0.1);color:#7c3aed;',
+    'ready_to_ship'=>'background:rgba(14,165,233,0.1);color:#0369a1;',
+    'shipped'=>'background:rgba(34,197,94,0.1);color:#15803d;',
+    'delivered'=>'background:rgba(16,185,129,0.1);color:var(--primary-dark);',
+    'completed'=>'background:rgba(16,185,129,0.1);color:var(--primary-dark);',
+    'cancelled'=>'background:rgba(239,68,68,0.1);color:#dc2626;',
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Penjual - Panenly</title>
+    <title>Dashboard Penjual - Freshly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
@@ -69,16 +79,34 @@ $statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','shipped'=>'Diki
         .sidebar-menu a { display:flex; align-items:center; gap:10px; padding:0.75rem 1rem; color:var(--text-muted); border-radius:8px; font-weight:500; text-decoration:none; }
         .sidebar-menu a.active { background:rgba(16,185,129,0.1); color:var(--primary-color); }
         .sidebar-menu a:hover:not(.active) { background:var(--bg-color); color:var(--text-main); }
+        .status-select {
+            padding:0.35rem 0.5rem; border:1px solid var(--border-color); border-radius:6px;
+            font-size:0.8rem; font-family:inherit; cursor:pointer; outline:none;
+            background:var(--white); min-width:140px;
+        }
+        .status-select:focus { border-color:var(--primary-color); }
+        .btn-status-update {
+            padding:0.3rem 0.6rem; font-size:0.75rem; border:none; border-radius:5px;
+            background:var(--primary-color); color:white; cursor:pointer; font-weight:600;
+            transition:var(--transition);
+        }
+        .btn-status-update:hover { background:var(--primary-dark); }
+        .btn-status-cancel {
+            padding:0.3rem 0.6rem; font-size:0.75rem; border:1px solid #ef4444; border-radius:5px;
+            background:transparent; color:#ef4444; cursor:pointer; font-weight:600;
+            transition:var(--transition);
+        }
+        .btn-status-cancel:hover { background:rgba(239,68,68,0.1); }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
-            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Panenly</a>
+            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Freshly</a>
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="products.php"><i class="fa-solid fa-box"></i> Kelola Produk</a></li>
-                <li><a href="../chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
+                <li><a href="chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
                 <li><a href="profile.php"><i class="fa-solid fa-store"></i> Profil Toko</a></li>
                 <li><a href="<?= BASE_URL ?>/includes/logout.php" style="color:#ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</a></li>
             </ul>
@@ -124,7 +152,7 @@ $statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','shipped'=>'Diki
                             <th style="padding:0.75rem;">Pembeli</th>
                             <th style="padding:0.75rem;">Total</th>
                             <th style="padding:0.75rem;">Status</th>
-                            <th style="padding:0.75rem;">Aksi</th>
+                            <th style="padding:0.75rem;">Update Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,12 +161,30 @@ $statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','shipped'=>'Diki
                             <td style="padding:0.75rem;font-size:0.9rem;"><?= sanitize($order['order_number']) ?></td>
                             <td style="padding:0.75rem;"><?= sanitize($order['buyer_name']) ?></td>
                             <td style="padding:0.75rem;font-weight:600;"><?= formatRupiah($order['total']) ?></td>
-                            <td style="padding:0.75rem;"><span class="badge <?= in_array($order['status'],['delivered','completed'])?'badge-success':'badge-warning' ?>" style="padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:600;<?= in_array($order['status'],['delivered','completed'])?'background:rgba(16,185,129,0.1);color:var(--primary-dark);':'background:rgba(245,158,11,0.1);color:#b45309;' ?>"><?= $statusLabels[$order['status']]??$order['status'] ?></span></td>
+                            <td style="padding:0.75rem;"><span style="padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:600;<?= $statusColors[$order['status']] ?? '' ?>"><?= $statusLabels[$order['status']]??$order['status'] ?></span></td>
                             <td style="padding:0.75rem;">
-                                <?php if($order['status']==='pending'): ?>
-                                <button class="btn btn-primary" style="padding:0.25rem 0.5rem;font-size:0.8rem;" onclick="updateOrder(<?= $order['id'] ?>,'processing','Pesanan sedang diproses penjual')">Proses</button>
-                                <?php elseif($order['status']==='processing'): ?>
-                                <button class="btn btn-primary" style="padding:0.25rem 0.5rem;font-size:0.8rem;" onclick="updateOrder(<?= $order['id'] ?>,'shipped','Pesanan dibawa oleh kurir')">Kirim</button>
+                                <?php if(!in_array($order['status'], ['completed','cancelled','delivered'])): ?>
+                                <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                                    <select class="status-select" id="statusSelect_<?= $order['id'] ?>">
+                                        <?php
+                                        // Define allowed next statuses based on current status
+                                        $nextStatuses = match($order['status']) {
+                                            'pending' => ['processing'=>'Diproses','packing'=>'Dikemas','cancelled'=>'Dibatalkan'],
+                                            'processing' => ['packing'=>'Dikemas','ready_to_ship'=>'Siap Dikirim','cancelled'=>'Dibatalkan'],
+                                            'packing' => ['ready_to_ship'=>'Siap Dikirim','shipped'=>'Sedang Dikirim','cancelled'=>'Dibatalkan'],
+                                            'ready_to_ship' => ['shipped'=>'Sedang Dikirim','cancelled'=>'Dibatalkan'],
+                                            'shipped' => ['delivered'=>'Sampai'],
+                                            default => [],
+                                        };
+                                        foreach($nextStatuses as $sKey => $sLabel):
+                                        ?>
+                                        <option value="<?= $sKey ?>"><?= $sLabel ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn-status-update" onclick="updateOrderStatus(<?= $order['id'] ?>)"><i class="fa-solid fa-check"></i> Update</button>
+                                </div>
+                                <?php else: ?>
+                                <span style="font-size:0.8rem;color:var(--text-muted);">—</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -165,7 +211,22 @@ $statusLabels = ['pending'=>'Menunggu','processing'=>'Diproses','shipped'=>'Diki
         options: { responsive: true, plugins: { legend: { position: 'top' } } }
     });
     
-    function updateOrder(orderId, status, statusText) {
+    const statusTextMap = {
+        'processing': 'Pesanan sedang diproses penjual',
+        'packing': 'Pesanan sedang dikemas',
+        'ready_to_ship': 'Pesanan siap dikirim',
+        'shipped': 'Pesanan sedang dalam perjalanan',
+        'delivered': 'Pesanan telah sampai di tujuan',
+        'cancelled': 'Pesanan dibatalkan oleh penjual'
+    };
+    
+    function updateOrderStatus(orderId) {
+        const select = document.getElementById('statusSelect_' + orderId);
+        const status = select.value;
+        const statusText = statusTextMap[status] || 'Status diperbarui';
+        
+        if (status === 'cancelled' && !confirm('Yakin ingin membatalkan pesanan ini?')) return;
+        
         fetch('<?= BASE_URL ?>/api/orders.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},

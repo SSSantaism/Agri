@@ -1,8 +1,8 @@
 #!/bin/bash
-# Panenly - Quick Setup Script
+# Freshly - Quick Setup Script
 # Run: sudo bash setup.sh
 
-echo "🌿 Panenly - Setup Script"
+echo "🌿 Freshly - Setup Script"
 echo "========================="
 
 # 1. Start XAMPP services
@@ -46,7 +46,7 @@ echo ""
 echo "🌐 Open: http://localhost/Agri/"
 echo ""
 echo "📋 Default Credentials:"
-echo "  Buyer:  buyer@panenly.com / password123"
-echo "  Seller: seller@panenly.com / password123"
-echo "  Admin:  admin@panenly.com / password123"
+echo "  Buyer:  buyer@freshly.com / password123"
+echo "  Seller: seller@freshly.com / password123"
+echo "  Admin:  admin@freshly.com / password123"
 echo ""

@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Authentication Functions
+ * Freshly - Authentication Functions
  */
 
 require_once __DIR__ . '/config.php';

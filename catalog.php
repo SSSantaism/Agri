@@ -5,7 +5,10 @@ $db = getDB();
 
 // Handle search and filters
 $search = trim($_GET['search'] ?? '');
-$categoryFilter = (int) ($_GET['category'] ?? 0);
+$categoryFilters = $_GET['category'] ?? [];
+if (!is_array($categoryFilters)) $categoryFilters = $categoryFilters ? [$categoryFilters] : [];
+$categoryFilters = array_map('intval', $categoryFilters);
+$categoryFilters = array_filter($categoryFilters, fn($v) => $v > 0);
 $locationFilter = trim($_GET['location'] ?? '');
 $minPrice = (int) ($_GET['min_price'] ?? 0);
 $maxPrice = (int) ($_GET['max_price'] ?? 0);
@@ -21,7 +24,11 @@ if (!empty($search)) {
     $searchTerm = "%{$search}%";
     $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
 }
-if ($categoryFilter > 0) { $where[] = "p.category_id = ?"; $params[] = $categoryFilter; }
+if (!empty($categoryFilters)) {
+    $placeholders = implode(',', array_fill(0, count($categoryFilters), '?'));
+    $where[] = "p.category_id IN ({$placeholders})";
+    $params = array_merge($params, $categoryFilters);
+}
 if (!empty($locationFilter)) { $where[] = "u.store_location LIKE ?"; $params[] = "%{$locationFilter}%"; }
 if ($minPrice > 0) { $where[] = "p.price >= ?"; $params[] = $minPrice; }
 if ($maxPrice > 0) { $where[] = "p.price <= ?"; $params[] = $maxPrice; }
@@ -56,7 +63,7 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Produk - Panenly</title>
+    <title>Katalog Produk - Freshly</title>
     <meta name="description" content="Jelajahi katalog produk pertanian segar langsung dari petani lokal. Sayuran, buah, beras, dan rempah berkualitas.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,11 +126,12 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
     <div class="catalog-section">
         <aside class="sidebar-filter">
             <h3>Filter Produk</h3>
-            <form action="" method="GET">
+            <form action="" method="GET" id="filterForm">
                 <?php if ($search): ?><input type="hidden" name="search" value="<?= sanitize($search) ?>"><?php endif; ?>
+                <?php if ($sortBy !== 'terbaru'): ?><input type="hidden" name="sort" value="<?= sanitize($sortBy) ?>"><?php endif; ?>
                 <div class="filter-group">
                     <h4>Lokasi</h4>
-                    <select class="filter-select" name="location">
+                    <select class="filter-select auto-filter" name="location">
                         <option value="">Semua Lokasi</option>
                         <?php foreach($locations as $loc): ?>
                         <option value="<?= sanitize($loc['store_location']) ?>" <?= $locationFilter===$loc['store_location']?'selected':'' ?>><?= sanitize($loc['store_location']) ?></option>
@@ -133,30 +141,25 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
                 <div class="filter-group">
                     <h4>Harga</h4>
                     <div class="price-range">
-                        <input type="number" name="min_price" placeholder="Min" class="filter-input" value="<?= $minPrice?:''; ?>">
+                        <input type="number" name="min_price" placeholder="Rp Min" class="filter-input auto-filter-delay" value="<?= $minPrice?:''; ?>">
                         <span>-</span>
-                        <input type="number" name="max_price" placeholder="Max" class="filter-input" value="<?= $maxPrice?:''; ?>">
+                        <input type="number" name="max_price" placeholder="Rp Max" class="filter-input auto-filter-delay" value="<?= $maxPrice?:''; ?>">
                     </div>
                 </div>
                 <div class="filter-group">
                     <h4>Kategori</h4>
                     <?php foreach($categories as $cat): ?>
-                    <label><input type="radio" name="category" value="<?= $cat['id'] ?>" <?= $categoryFilter==$cat['id']?'checked':'' ?>> <?= sanitize($cat['name']) ?></label>
+                    <label><input type="checkbox" name="category[]" value="<?= $cat['id'] ?>" class="auto-filter" <?= in_array($cat['id'], $categoryFilters)?'checked':'' ?>> <?= sanitize($cat['name']) ?></label>
                     <?php endforeach; ?>
-                    <label><input type="radio" name="category" value="0" <?= $categoryFilter==0?'checked':'' ?>> Semua</label>
                 </div>
                 <div class="filter-group">
                     <h4>Rating Minimal</h4>
-                    <select class="filter-select" name="min_rating">
+                    <select class="filter-select auto-filter" name="min_rating">
                         <option value="0">Semua Bintang</option>
                         <option value="4" <?= $minRating>=4?'selected':'' ?>>4+ Bintang</option>
                         <option value="3" <?= $minRating>=3&&$minRating<4?'selected':'' ?>>3+ Bintang</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;">Terapkan Filter</button>
-                <?php if($categoryFilter||$locationFilter||$minPrice||$maxPrice||$minRating||$search): ?>
-                <a href="<?= BASE_URL ?>/catalog.php" class="btn btn-outline" style="width:100%;margin-top:0.5rem;text-align:center;display:block;text-decoration:none;">Reset</a>
-                <?php endif; ?>
             </form>
         </aside>
 
@@ -190,7 +193,7 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
                         <div class="product-badge" style="position:absolute;top:10px;right:10px;background:var(--secondary-color);color:white;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;z-index:10;"><?= sanitize($prod['badge']) ?></div>
                         <?php endif; ?>
                         <a href="product.php?id=<?= $prod['id'] ?>">
-                            <img src="<?= getProductImage($prod['image_url']??'') ?>" alt="<?= sanitize($prod['name']) ?>" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Panenly'">
+                            <img src="<?= getProductImage($prod['image_url']??'') ?>" alt="<?= sanitize($prod['name']) ?>" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Freshly'">
                         </a>
                     </div>
                     <div class="product-info">
@@ -221,5 +224,21 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
 
     <?php include __DIR__ . '/includes/footer.php'; ?>
     <script src="assets/js/script.js"></script>
+    <script>
+    (function() {
+        const form = document.getElementById('filterForm');
+        if (!form) return;
+        let debounceTimer;
+        form.querySelectorAll('.auto-filter').forEach(el => {
+            el.addEventListener('change', () => form.submit());
+        });
+        form.querySelectorAll('.auto-filter-delay').forEach(el => {
+            el.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => form.submit(), 800);
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

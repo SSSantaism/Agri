@@ -21,24 +21,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     $preorderDate = $_POST['preorder_date'] ?? null;
     $badge = trim($_POST['badge'] ?? '') ?: null;
     
-    // Handle image upload
+    // Handle image upload (local file takes priority over URL)
     $imageUrl = '';
     if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
         $uploaded = handleImageUpload($_FILES['product_image']);
-        if ($uploaded) $imageUrl = $uploaded;
+        if ($uploaded) {
+            $imageUrl = $uploaded;
+        } else {
+            $formError = 'Gagal mengunggah foto. Pastikan file berupa gambar (JPG/PNG/WebP/GIF) dan ukuran maksimal 5MB.';
+        }
     }
-    if (empty($imageUrl)) {
-        $imageUrl = trim($_POST['image_url'] ?? '') ?: 'https://via.placeholder.com/400x300?text=Panenly';
+    if (empty($imageUrl) && empty($formError)) {
+        $imageUrl = trim($_POST['image_url'] ?? '') ?: 'https://via.placeholder.com/400x300?text=Freshly';
     }
     
-    if (empty($name) || $price <= 0) {
-        $formError = 'Nama produk dan harga wajib diisi.';
-    } else {
-        $stmt = $db->prepare("INSERT INTO products (seller_id, category_id, name, weight, price, original_price, stock, quality, harvest_method, description, image_url, badge, preorder_available, preorder_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        $stmt->execute([$sellerId, $categoryId, $name, $weight, $price, $originalPrice, $stock, $quality, $harvestMethod, $description, $imageUrl, $badge, $preorder, $preorderDate ?: null]);
-        setFlash('success', 'Produk berhasil ditambahkan!');
-        header('Location: ' . BASE_URL . '/seller/products.php');
-        exit;
+    // Validate all required fields (except image_url and original_price)
+    if (empty($formError)) {
+        if (empty($name)) {
+            $formError = 'Nama produk wajib diisi.';
+        } elseif (empty($categoryId)) {
+            $formError = 'Kategori wajib dipilih.';
+        } elseif ($price <= 0) {
+            $formError = 'Harga produk wajib diisi dan harus lebih dari 0.';
+        } elseif ($stock <= 0) {
+            $formError = 'Stok wajib diisi dan harus lebih dari 0.';
+        } elseif (empty($weight)) {
+            $formError = 'Berat/Satuan wajib diisi.';
+        } elseif (empty($description)) {
+            $formError = 'Deskripsi produk wajib diisi.';
+        } else {
+            $stmt = $db->prepare("INSERT INTO products (seller_id, category_id, name, weight, price, original_price, stock, quality, harvest_method, description, image_url, badge, preorder_available, preorder_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $stmt->execute([$sellerId, $categoryId, $name, $weight, $price, $originalPrice, $stock, $quality, $harvestMethod, $description, $imageUrl, $badge, $preorder, $preorderDate ?: null]);
+            setFlash('success', 'Produk berhasil ditambahkan!');
+            header('Location: ' . BASE_URL . '/seller/products.php');
+            exit;
+        }
     }
 }
 
@@ -91,7 +108,7 @@ $categories = $db->query("SELECT * FROM categories ORDER BY id")->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Produk - Panenly</title>
+    <title>Kelola Produk - Freshly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
@@ -113,11 +130,11 @@ $categories = $db->query("SELECT * FROM categories ORDER BY id")->fetchAll();
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
-            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Panenly</a>
+            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Freshly</a>
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="products.php" class="active"><i class="fa-solid fa-box"></i> Kelola Produk</a></li>
-                <li><a href="../chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
+                <li><a href="chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
                 <li><a href="profile.php"><i class="fa-solid fa-store"></i> Profil Toko</a></li>
                 <li><a href="<?= BASE_URL ?>/includes/logout.php" style="color:#ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</a></li>
             </ul>
@@ -137,19 +154,19 @@ $categories = $db->query("SELECT * FROM categories ORDER BY id")->fetchAll();
                     <input type="hidden" name="action" value="add">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                         <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Nama Produk *</label><input type="text" name="product_name" class="form-input" required></div>
-                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Kategori</label>
-                            <select name="category_id" class="form-input">
+                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Kategori *</label>
+                            <select name="category_id" class="form-input" required>
                                 <option value="">Pilih Kategori</option>
                                 <?php foreach($categories as $c): ?><option value="<?= $c['id'] ?>"><?= sanitize($c['name']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Harga (Rp) *</label><input type="number" name="price" class="form-input" required></div>
+                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Harga (Rp) *</label><input type="number" name="price" class="form-input" required min="1"></div>
                         <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Harga Asli (coret)</label><input type="number" name="original_price" class="form-input"></div>
-                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Stok</label><input type="number" name="stock" class="form-input" value="0"></div>
-                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Berat/Satuan</label><input type="text" name="weight" class="form-input" placeholder="misal: 1 kg"></div>
-                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Foto Produk</label><input type="file" name="product_image" class="form-input" accept="image/*"></div>
+                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Stok *</label><input type="number" name="stock" class="form-input" value="1" required min="1"></div>
+                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Berat/Satuan *</label><input type="text" name="weight" class="form-input" placeholder="misal: 1 kg" required></div>
+                        <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Foto Produk</label><input type="file" name="product_image" class="form-input" accept="image/jpeg,image/png,image/webp,image/gif"></div>
                         <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Atau URL Gambar</label><input type="url" name="image_url" class="form-input" placeholder="https://..."></div>
-                        <div style="grid-column:span 2;"><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Deskripsi</label><textarea name="description" class="form-input" rows="3"></textarea></div>
+                        <div style="grid-column:span 2;"><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Deskripsi *</label><textarea name="description" class="form-input" rows="3" required></textarea></div>
                         <div><label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:1rem;"><input type="checkbox" name="preorder" style="accent-color:var(--primary-color);"> Buka Pre-Order</label></div>
                         <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Tanggal Panen (PO)</label><input type="date" name="preorder_date" class="form-input"></div>
                     </div>

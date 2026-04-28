@@ -1,5 +1,5 @@
 -- =============================================
--- Panenly Seed Data
+-- Freshly Seed Data
 -- =============================================
 -- Default password for all users: password123
 -- Hash generated with PHP password_hash('password123', PASSWORD_DEFAULT)
@@ -7,27 +7,27 @@
 SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 
-USE panenly;
+USE freshly;
 
 -- =============================================
 -- USERS
 -- =============================================
 INSERT INTO users (name, email, password_hash, phone, address, role, seller_status, store_name, store_location) VALUES
 -- Buyer (password: password123)
-('Budi Santoso', 'buyer@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'buyer', NULL, NULL, NULL),
+('Budi Santoso', 'buyer@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'buyer', NULL, NULL, NULL),
 
 -- Sellers (password: password123)
-('Pak Tono', 'seller@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 812-9876-5432', 'Jl. Apel No. 45, Batu, Malang, Jawa Timur', 'seller', 'approved', 'Toko Pak Tono', 'Batu, Malang'),
-('Bu Siti', 'busiti@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 813-1234-5678', 'Jl. Wortel No. 10, Berastagi, Karo, Sumatera Utara', 'seller', 'approved', 'Kebun Bu Siti', 'Berastagi, Karo'),
-('Kang Dadan', 'kangdadan@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 815-5555-6666', 'Jl. Hidroponik No. 8, Cisarua, Bogor, Jawa Barat', 'seller', 'approved', 'Hidroponik Kang Dadan', 'Cisarua, Bogor'),
-('Koperasi Tani Makmur', 'koperasi@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 816-7777-8888', 'Jl. Sawah No. 1, Cianjur, Jawa Barat', 'seller', 'approved', 'Koperasi Tani Makmur', 'Cianjur, Jabar'),
+('Pak Tono', 'seller@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 812-9876-5432', 'Jl. Apel No. 45, Batu, Malang, Jawa Timur', 'seller', 'approved', 'Toko Pak Tono', 'Batu, Malang'),
+('Bu Siti', 'busiti@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 813-1234-5678', 'Jl. Wortel No. 10, Berastagi, Karo, Sumatera Utara', 'seller', 'approved', 'Kebun Bu Siti', 'Berastagi, Karo'),
+('Kang Dadan', 'kangdadan@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 815-5555-6666', 'Jl. Hidroponik No. 8, Cisarua, Bogor, Jawa Barat', 'seller', 'approved', 'Hidroponik Kang Dadan', 'Cisarua, Bogor'),
+('Koperasi Tani Makmur', 'koperasi@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 816-7777-8888', 'Jl. Sawah No. 1, Cianjur, Jawa Barat', 'seller', 'approved', 'Koperasi Tani Makmur', 'Cianjur, Jabar'),
 
 -- Pending Sellers
 ('Kebun Sayur Lembang', 'kebun.lembang@email.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 811-2233-4455', 'Jl. Lembang No. 20, Lembang, Bandung Barat', 'seller', 'pending', 'Kebun Sayur Lembang', 'Lembang, Bandung'),
 ('Koperasi Tani Makmur Sentosa', 'koperasi.makmur@email.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 812-9988-7766', 'Jl. Tani Makmur No. 5, Garut, Jawa Barat', 'seller', 'pending', 'Koperasi Tani Makmur Sentosa', 'Garut, Jabar'),
 
 -- Admin (password: password123)
-('Admin Panenly', 'admin@panenly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 800-0000-0000', 'Kantor Pusat Panenly', 'admin', NULL, NULL, NULL);
+('Admin Freshly', 'admin@freshly.com', '$2y$12$5LjSxAEGl0tsZ6q8uEXm0ecvMKPgUU0ECdv0w8EkfEODAey8AOyZO', '+62 800-0000-0000', 'Kantor Pusat Freshly', 'admin', NULL, NULL, NULL);
 
 -- =============================================
 -- CATEGORIES
@@ -75,8 +75,8 @@ INSERT INTO cart_items (user_id, product_id, quantity) VALUES
 -- SAMPLE ORDERS
 -- =============================================
 INSERT INTO orders (order_number, buyer_id, seller_id, recipient_name, recipient_phone, shipping_address, payment_method, subtotal, shipping_cost, total, status, tracking_number, created_at) VALUES
-('PNL-20260524-0001', 1, 2, 'Budi Santoso', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'qris', 70000, 15000, 85000, 'shipped', 'PNL-8923749823', '2026-05-24 20:15:00'),
-('PNL-20260510-0002', 1, 3, 'Budi Santoso', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'transfer', 12000, 15000, 27000, 'completed', 'PNL-7712345678', '2026-05-10 10:30:00');
+('FRS-20260524-0001', 1, 2, 'Budi Santoso', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'qris', 70000, 15000, 85000, 'shipped', 'FRS-8923749823', '2026-05-24 20:15:00'),
+('FRS-20260510-0002', 1, 3, 'Budi Santoso', '+62 812-3456-7890', 'Jl. Merdeka No. 123, Kecamatan Sukajadi, Kota Bandung, Jawa Barat 40161', 'transfer', 12000, 15000, 27000, 'completed', 'FRS-7712345678', '2026-05-10 10:30:00');
 
 -- =============================================
 -- SAMPLE ORDER ITEMS

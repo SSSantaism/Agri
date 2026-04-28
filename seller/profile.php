@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Toko - Panenly</title>
+    <title>Profil Toko - Freshly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
                 <li><a href="products.php"><i class="fa-solid fa-box"></i> Kelola Produk</a></li>
-                <li><a href="../chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
+                <li><a href="chat.php"><i class="fa-solid fa-message"></i> Pesan Masuk</a></li>
                 <li><a href="profile.php" class="active"><i class="fa-solid fa-store"></i> Profil Toko</a></li>
                 <li><a href="<?= BASE_URL ?>/includes/logout.php" style="color:#ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</a></li>
             </ul>

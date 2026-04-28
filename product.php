@@ -43,7 +43,7 @@ $totalReviews = (int) $reviewCount->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= sanitize($product['name']) ?> - Panenly</title>
+    <title><?= sanitize($product['name']) ?> - Freshly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -74,7 +74,7 @@ $totalReviews = (int) $reviewCount->fetchColumn();
     <div style="padding:0 5%;max-width:1200px;margin:0 auto;">
         <div class="detail-section">
             <div class="product-gallery">
-                <img src="<?= getProductImage($product['image_url']??'') ?>" alt="<?= sanitize($product['name']) ?>" onerror="this.src='https://via.placeholder.com/800x600?text=Panenly'">
+                <img src="<?= getProductImage($product['image_url']??'') ?>" alt="<?= sanitize($product['name']) ?>" onerror="this.src='https://via.placeholder.com/800x600?text=Freshly'">
             </div>
             <div>
                 <?php if($product['category_name']): ?>
@@ -110,6 +110,9 @@ $totalReviews = (int) $reviewCount->fetchColumn();
                         <button type="button" class="btn btn-primary" style="flex:1;" onclick="buyNow()">Beli Langsung</button>
                     </div>
                 </form>
+                <a href="<?= BASE_URL ?>/chat.php?partner=<?= $product['seller_user_id'] ?>&product_id=<?= $product['id'] ?>" class="btn btn-outline" style="width:100%;text-align:center;display:block;margin-bottom:2rem;border-color:var(--primary-color);color:var(--primary-color);">
+                    <i class="fa-solid fa-message"></i> Chat Penjual
+                </a>
 
                 <?php if($product['preorder_available'] && $product['preorder_date']): ?>
                 <div class="preorder-card">

@@ -1,6 +1,6 @@
 <?php
 /**
- * Panenly - Cart API
+ * Freshly - Cart API
  * Handles AJAX requests for cart operations
  * 
  * POST actions:

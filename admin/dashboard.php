@@ -33,7 +33,7 @@ $totalOrders = (int) $db->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Panenly</title>
+    <title>Admin Dashboard - Freshly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
@@ -56,7 +56,7 @@ $totalOrders = (int) $db->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
-            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Panenly Admin</a>
+            <a href="../index.php" class="nav-brand" style="margin-bottom:2rem;"><i class="fa-solid fa-leaf"></i> Freshly Admin</a>
             <ul class="sidebar-menu">
                 <li><a href="dashboard.php" class="active"><i class="fa-solid fa-users-gear"></i> Verifikasi Penjual</a></li>
                 <li><a href="<?= BASE_URL ?>/includes/logout.php" style="color:#ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</a></li>
