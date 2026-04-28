@@ -182,24 +182,60 @@ function renderFlash(): string {
  * Handle image upload, returns filename or null on failure
  */
 function handleImageUpload(array $file, string $prefix = 'product'): ?string {
-    if ($file['error'] !== UPLOAD_ERR_OK) return null;
-    if ($file['size'] > MAX_UPLOAD_SIZE) return null;
-    if (!in_array($file['type'], ALLOWED_IMAGE_TYPES)) return null;
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        error_log("Upload error code: " . $file['error']);
+        return null;
+    }
+    if ($file['size'] > MAX_UPLOAD_SIZE) {
+        error_log("Upload file too large: " . $file['size'] . " bytes");
+        return null;
+    }
+    
+    // Use finfo for reliable server-side MIME detection (browser type is unreliable)
+    $detectedType = $file['type'];
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $detectedType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+    }
+    
+    // Normalize common MIME variants
+    $mimeMap = [
+        'image/jpg' => 'image/jpeg',
+        'image/pjpeg' => 'image/jpeg',
+    ];
+    $detectedType = $mimeMap[$detectedType] ?? $detectedType;
+    
+    if (!in_array($detectedType, ALLOWED_IMAGE_TYPES)) {
+        error_log("Upload MIME type not allowed: " . $detectedType . " (browser reported: " . $file['type'] . ")");
+        return null;
+    }
     
     // Create upload directory if not exists
     if (!is_dir(UPLOAD_DIR)) {
         mkdir(UPLOAD_DIR, 0755, true);
     }
     
+    // Map MIME to proper extension
+    $extMap = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+        'image/gif'  => 'gif',
+    ];
+    $ext = $extMap[$detectedType] ?? pathinfo($file['name'], PATHINFO_EXTENSION);
+    
     // Generate unique filename
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = $prefix . '_' . time() . '_' . mt_rand(1000, 9999) . '.' . $ext;
     $destination = UPLOAD_DIR . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $destination)) {
+        // Ensure the file is readable
+        chmod($destination, 0644);
         return $filename;
     }
     
+    error_log("move_uploaded_file failed: " . $file['tmp_name'] . " -> " . $destination);
     return null;
 }
 
@@ -207,10 +243,18 @@ function handleImageUpload(array $file, string $prefix = 'product'): ?string {
  * Get product image URL (handles both uploaded and external URLs)
  */
 function getProductImage(string $imageUrl): string {
+    if (empty($imageUrl)) {
+        return 'https://via.placeholder.com/400x300?text=Freshly';
+    }
     if (str_starts_with($imageUrl, 'http')) {
         return $imageUrl;
     }
-    return BASE_URL . '/uploads/products/' . $imageUrl;
+    // Local file — verify it exists
+    $localPath = UPLOAD_DIR . $imageUrl;
+    if (file_exists($localPath)) {
+        return BASE_URL . '/uploads/products/' . $imageUrl;
+    }
+    return 'https://via.placeholder.com/400x300?text=Freshly';
 }
 
 /**

@@ -41,9 +41,12 @@ $orderItems = $stmt->fetchAll();
 $statusLabels = [
     'pending' => 'Menunggu Konfirmasi',
     'processing' => 'Sedang Diproses',
+    'packing' => 'Dikemas',
+    'ready_to_ship' => 'Siap Dikirim',
     'shipped' => 'Dalam Pengiriman',
     'delivered' => 'Telah Sampai',
-    'completed' => 'Selesai'
+    'completed' => 'Selesai',
+    'cancelled' => 'Dibatalkan'
 ];
 ?>
 <!DOCTYPE html>
@@ -113,6 +116,7 @@ $statusLabels = [
                 <?php endforeach; ?>
             </div>
             <a href="<?= BASE_URL ?>/buyer/history.php" class="btn btn-outline" style="width:100%;margin-top:2rem;text-align:center;display:block;text-decoration:none;">Lihat Riwayat Pesanan</a>
+            <a href="<?= BASE_URL ?>/index.php" class="btn btn-primary" style="width:100%;margin-top:0.75rem;text-align:center;display:block;text-decoration:none;"><i class="fa-solid fa-home" style="margin-right:6px;"></i>Kembali ke Beranda</a>
         </div>
     </div>
 </body>

@@ -87,8 +87,10 @@ if ($selectedPartner <= 0 && !empty($partners)) {
         .unread-dot { background:var(--primary-color); width:8px; height:8px; border-radius:50%; flex-shrink:0; }
         .product-context-card {
             display:flex; gap:12px; padding:12px; background:var(--white);
-            border:1px solid var(--border-color); border-radius:10px;
-            box-shadow:0 1px 3px rgba(0,0,0,0.06); align-self:stretch;
+            border:1px solid var(--border-color); border-radius:10px 10px 10px 0;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08); align-self:flex-start;
+            max-width:70%; margin-bottom:-4px; position:relative;
+            border-bottom:2px solid var(--primary-color);
         }
         .product-context-card img {
             width:60px; height:60px; object-fit:cover; border-radius:8px; flex-shrink:0;
@@ -186,8 +188,33 @@ if ($selectedPartner <= 0 && !empty($partners)) {
             const box = document.getElementById('messageBox');
             box.innerHTML = '';
             
-            // Show product context card above messages
-            if (data.product_context) {
+            let productCardInserted = false;
+            
+            data.messages.forEach(m => {
+                // Insert product context card above the first buyer (received) message
+                if (!productCardInserted && data.product_context && m.sender_id != data.current_user_id) {
+                    const card = document.createElement('div');
+                    card.className = 'product-context-card';
+                    card.innerHTML = `
+                        <img src="${data.product_context.image_url}" alt="${data.product_context.name}" onerror="this.src='https://via.placeholder.com/60?text=F'">
+                        <div class="product-ctx-info">
+                            <div class="product-ctx-name">${data.product_context.name}</div>
+                            <div class="product-ctx-price">${data.product_context.price_formatted}</div>
+                            <div class="product-ctx-weight">${data.product_context.weight || ''}</div>
+                        </div>
+                    `;
+                    box.appendChild(card);
+                    productCardInserted = true;
+                }
+                
+                const div = document.createElement('div');
+                div.className = 'msg ' + (m.sender_id == data.current_user_id ? 'sent' : 'received');
+                div.textContent = m.message;
+                box.appendChild(div);
+            });
+            
+            // If product context exists but no buyer messages yet, show at top
+            if (!productCardInserted && data.product_context) {
                 const card = document.createElement('div');
                 card.className = 'product-context-card';
                 card.innerHTML = `
@@ -198,15 +225,9 @@ if ($selectedPartner <= 0 && !empty($partners)) {
                         <div class="product-ctx-weight">${data.product_context.weight || ''}</div>
                     </div>
                 `;
-                box.appendChild(card);
+                box.prepend(card);
             }
             
-            data.messages.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'msg ' + (m.sender_id == data.current_user_id ? 'sent' : 'received');
-                div.textContent = m.message;
-                box.appendChild(div);
-            });
             box.scrollTop = box.scrollHeight;
         });
     }

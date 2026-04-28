@@ -23,7 +23,7 @@ $userRole = $_SESSION['role'] ?? '';
     <?php if ($navbarType === 'full'): ?>
     <div class="search-container">
         <i class="fa-solid fa-search search-icon"></i>
-        <form action="<?= BASE_URL ?>/index.php" method="GET" style="display:contents;">
+        <form action="<?= BASE_URL ?>/catalog.php" method="GET" style="display:contents;">
             <input type="text" name="search" class="search-input" placeholder="Cari sayur segar, buah, atau beras..." value="<?= sanitize($_GET['search'] ?? '') ?>">
         </form>
     </div>

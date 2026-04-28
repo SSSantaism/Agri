@@ -62,9 +62,12 @@ foreach ($stmt->fetchAll() as $r) { $reviewedProducts[$r['k']] = true; }
 $statusBadge = [
     'pending' => ['Menunggu Konfirmasi', 'badge-warning'],
     'processing' => ['Sedang Diproses', 'badge-warning'],
+    'packing' => ['Dikemas', 'badge-warning'],
+    'ready_to_ship' => ['Siap Dikirim', 'badge-warning'],
     'shipped' => ['Sedang Dikirim', 'badge-warning'],
     'delivered' => ['Telah Sampai', 'badge-success'],
-    'completed' => ['Selesai', 'badge-success']
+    'completed' => ['Selesai', 'badge-success'],
+    'cancelled' => ['Dibatalkan', 'badge-danger']
 ];
 ?>
 <!DOCTYPE html>

@@ -5,15 +5,22 @@ requireApprovedSeller();
 $db = getDB();
 $sellerId = $_SESSION['user_id'];
 
+// Detect if POST data was silently dropped (post_max_size exceeded)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES)) {
+    $formError = 'Ukuran file terlalu besar. Maksimal upload adalah 5MB. Silakan pilih gambar yang lebih kecil.';
+}
+
 // Handle add product
-$formError = '';
+$formError = $formError ?? '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
     $name = trim($_POST['product_name'] ?? '');
     $price = (int) ($_POST['price'] ?? 0);
     $originalPrice = (int) ($_POST['original_price'] ?? 0) ?: null;
     $stock = (int) ($_POST['stock'] ?? 0);
     $weight = trim($_POST['weight'] ?? '');
-    $categoryId = (int) ($_POST['category_id'] ?? 0) ?: null;
+    $rawCategoryId = $_POST['category_id'] ?? '';
+    $categoryId = ($rawCategoryId === '' || $rawCategoryId === 'lain') ? null : (int) $rawCategoryId;
+    $categoryChosen = ($rawCategoryId !== ''); // user did pick something
     $quality = trim($_POST['quality'] ?? '');
     $harvestMethod = trim($_POST['harvest_method'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -30,6 +37,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
         } else {
             $formError = 'Gagal mengunggah foto. Pastikan file berupa gambar (JPG/PNG/WebP/GIF) dan ukuran maksimal 5MB.';
         }
+    } elseif (isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        // File was selected but upload had an error
+        $uploadErrors = [
+            UPLOAD_ERR_INI_SIZE   => 'Ukuran file melebihi batas server (upload_max_filesize).',
+            UPLOAD_ERR_FORM_SIZE  => 'Ukuran file melebihi batas form.',
+            UPLOAD_ERR_PARTIAL    => 'File hanya terupload sebagian.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Folder temporary tidak ditemukan di server.',
+            UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file ke disk.',
+            UPLOAD_ERR_EXTENSION  => 'Upload dihentikan oleh ekstensi PHP.',
+        ];
+        $errCode = $_FILES['product_image']['error'];
+        $formError = $uploadErrors[$errCode] ?? 'Gagal mengunggah foto (error code: ' . $errCode . ').';
     }
     if (empty($imageUrl) && empty($formError)) {
         $imageUrl = trim($_POST['image_url'] ?? '') ?: 'https://via.placeholder.com/400x300?text=Freshly';
@@ -39,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     if (empty($formError)) {
         if (empty($name)) {
             $formError = 'Nama produk wajib diisi.';
-        } elseif (empty($categoryId)) {
+        } elseif (!$categoryChosen) {
             $formError = 'Kategori wajib dipilih.';
         } elseif ($price <= 0) {
             $formError = 'Harga produk wajib diisi dan harus lebih dari 0.';
@@ -147,7 +166,7 @@ $categories = $db->query("SELECT * FROM categories ORDER BY id")->fetchAll();
             </div>
 
             <!-- Add Product Form -->
-            <div class="chart-container" id="addForm" style="display:none;">
+            <div class="chart-container" id="addForm" style="display:<?= $formError ? 'block' : 'none' ?>;">
                 <h3 style="margin-bottom:1.5rem;">Tambah Produk Baru</h3>
                 <?php if($formError): ?><div class="error-msg"><?= sanitize($formError) ?></div><?php endif; ?>
                 <form method="POST" enctype="multipart/form-data">
@@ -158,6 +177,7 @@ $categories = $db->query("SELECT * FROM categories ORDER BY id")->fetchAll();
                             <select name="category_id" class="form-input" required>
                                 <option value="">Pilih Kategori</option>
                                 <?php foreach($categories as $c): ?><option value="<?= $c['id'] ?>"><?= sanitize($c['name']) ?></option><?php endforeach; ?>
+                                <option value="lain">Lain-Lain</option>
                             </select>
                         </div>
                         <div><label style="font-size:0.9rem;font-weight:500;display:block;margin-bottom:0.25rem;">Harga (Rp) *</label><input type="number" name="price" class="form-input" required min="1"></div>

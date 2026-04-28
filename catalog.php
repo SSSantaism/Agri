@@ -8,6 +8,8 @@ $search = trim($_GET['search'] ?? '');
 $categoryFilters = $_GET['category'] ?? [];
 if (!is_array($categoryFilters)) $categoryFilters = $categoryFilters ? [$categoryFilters] : [];
 $categoryFilters = array_map('intval', $categoryFilters);
+// Keep 0 as valid for "Lain-Lain" (uncategorized)
+$hasLainLain = in_array(0, $categoryFilters);
 $categoryFilters = array_filter($categoryFilters, fn($v) => $v > 0);
 $locationFilter = trim($_GET['location'] ?? '');
 $minPrice = (int) ($_GET['min_price'] ?? 0);
@@ -24,10 +26,16 @@ if (!empty($search)) {
     $searchTerm = "%{$search}%";
     $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
 }
-if (!empty($categoryFilters)) {
+if (!empty($categoryFilters) && !$hasLainLain) {
     $placeholders = implode(',', array_fill(0, count($categoryFilters), '?'));
     $where[] = "p.category_id IN ({$placeholders})";
     $params = array_merge($params, $categoryFilters);
+} elseif (!empty($categoryFilters) && $hasLainLain) {
+    $placeholders = implode(',', array_fill(0, count($categoryFilters), '?'));
+    $where[] = "(p.category_id IN ({$placeholders}) OR p.category_id IS NULL)";
+    $params = array_merge($params, $categoryFilters);
+} elseif ($hasLainLain) {
+    $where[] = "p.category_id IS NULL";
 }
 if (!empty($locationFilter)) { $where[] = "u.store_location LIKE ?"; $params[] = "%{$locationFilter}%"; }
 if ($minPrice > 0) { $where[] = "p.price >= ?"; $params[] = $minPrice; }
@@ -151,6 +159,7 @@ $locations = $db->query("SELECT DISTINCT store_location FROM users WHERE role='s
                     <?php foreach($categories as $cat): ?>
                     <label><input type="checkbox" name="category[]" value="<?= $cat['id'] ?>" class="auto-filter" <?= in_array($cat['id'], $categoryFilters)?'checked':'' ?>> <?= sanitize($cat['name']) ?></label>
                     <?php endforeach; ?>
+                    <label><input type="checkbox" name="category[]" value="0" class="auto-filter" <?= $hasLainLain?'checked':'' ?>> Lain-Lain</label>
                 </div>
                 <div class="filter-group">
                     <h4>Rating Minimal</h4>

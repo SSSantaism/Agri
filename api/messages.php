@@ -20,6 +20,15 @@ $db = getDB();
 $userId = $_SESSION['user_id'];
 $userRole = $_SESSION['role'] ?? '';
 
+// Check if product_id column exists in messages table (for backwards compatibility)
+$hasProductIdColumn = false;
+try {
+    $check = $db->query("SHOW COLUMNS FROM messages LIKE 'product_id'");
+    $hasProductIdColumn = $check->rowCount() > 0;
+} catch (Exception $e) {
+    $hasProductIdColumn = false;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $partnerId = (int) ($_GET['partner_id'] ?? 0);
     
@@ -77,21 +86,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     }
     
-    // Also check if there's a product context from the first message in the conversation
-    if (!$productContext) {
-        $stmt = $db->prepare("
-            SELECT p.id, p.name, p.price, p.image_url, p.weight 
-            FROM messages m 
-            JOIN products p ON m.product_id = p.id 
-            WHERE ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?))
-            AND m.product_id IS NOT NULL
-            ORDER BY m.created_at ASC LIMIT 1
-        ");
-        $stmt->execute([$userId, $partnerId, $partnerId, $userId]);
-        $productContext = $stmt->fetch();
-        if ($productContext) {
-            $productContext['image_url'] = getProductImage($productContext['image_url'] ?? '');
-            $productContext['price_formatted'] = formatRupiah($productContext['price']);
+    // Also check if there's a product context from messages (if column exists)
+    if (!$productContext && $hasProductIdColumn) {
+        try {
+            $stmt = $db->prepare("
+                SELECT p.id, p.name, p.price, p.image_url, p.weight 
+                FROM messages m 
+                JOIN products p ON m.product_id = p.id 
+                WHERE ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?))
+                AND m.product_id IS NOT NULL
+                ORDER BY m.created_at ASC LIMIT 1
+            ");
+            $stmt->execute([$userId, $partnerId, $partnerId, $userId]);
+            $productContext = $stmt->fetch();
+            if ($productContext) {
+                $productContext['image_url'] = getProductImage($productContext['image_url'] ?? '');
+                $productContext['price_formatted'] = formatRupiah($productContext['price']);
+            }
+        } catch (Exception $e) {
+            // Column may not exist, ignore
         }
     }
     
@@ -131,12 +144,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
     
-    $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, product_id, message) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$userId, $receiverId, $productId, $message]);
-    
-    echo json_encode([
-        'success' => true, 
-        'message_id' => (int) $db->lastInsertId(),
-        'timestamp' => date('Y-m-d H:i:s')
-    ]);
+    // Insert message (with or without product_id column)
+    try {
+        if ($hasProductIdColumn) {
+            $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, product_id, message) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$userId, $receiverId, $productId, $message]);
+        } else {
+            $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)");
+            $stmt->execute([$userId, $receiverId, $message]);
+        }
+        
+        echo json_encode([
+            'success' => true, 
+            'message_id' => (int) $db->lastInsertId(),
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+    } catch (Exception $e) {
+        // Fallback: try without product_id
+        try {
+            $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)");
+            $stmt->execute([$userId, $receiverId, $message]);
+            
+            echo json_encode([
+                'success' => true, 
+                'message_id' => (int) $db->lastInsertId(),
+                'timestamp' => date('Y-m-d H:i:s')
+            ]);
+        } catch (Exception $e2) {
+            echo json_encode(['success' => false, 'message' => 'Gagal mengirim pesan: ' . $e2->getMessage()]);
+        }
+    }
 }
