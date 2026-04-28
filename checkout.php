@@ -6,6 +6,20 @@ $db = getDB();
 $userId = $_SESSION['user_id'];
 $currentUser = getCurrentUser();
 
+$selectedItems = $_GET['items'] ?? '';
+$inClause = '';
+$params = [$userId];
+
+if (!empty($selectedItems)) {
+    $itemIds = array_map('intval', explode(',', $selectedItems));
+    $itemIds = array_filter($itemIds, fn($id) => $id > 0);
+    if (!empty($itemIds)) {
+        $placeholders = implode(',', array_fill(0, count($itemIds), '?'));
+        $inClause = " AND ci.id IN ($placeholders)";
+        $params = array_merge($params, $itemIds);
+    }
+}
+
 // Get cart items grouped by seller
 $stmt = $db->prepare("
     SELECT ci.*, p.name, p.price, p.image_url, p.weight, p.stock, p.seller_id,
@@ -13,9 +27,10 @@ $stmt = $db->prepare("
     FROM cart_items ci
     JOIN products p ON ci.product_id = p.id
     JOIN users u ON p.seller_id = u.id
-    WHERE ci.user_id = ? ORDER BY p.seller_id
+    WHERE ci.user_id = ? $inClause
+    ORDER BY p.seller_id
 ");
-$stmt->execute([$userId]);
+$stmt->execute($params);
 $cartItems = $stmt->fetchAll();
 
 if (empty($cartItems)) {
@@ -85,8 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    ->execute([$orderId]);
             }
             
-            // Clear cart
-            $db->prepare("DELETE FROM cart_items WHERE user_id = ?")->execute([$userId]);
+            // Clear checked out items from cart
+            $cartItemIds = array_column($cartItems, 'id');
+            if (!empty($cartItemIds)) {
+                $placeholders = implode(',', array_fill(0, count($cartItemIds), '?'));
+                $delParams = array_merge([$userId], $cartItemIds);
+                $db->prepare("DELETE FROM cart_items WHERE user_id = ? AND id IN ($placeholders)")->execute($delParams);
+            }
             
             $db->commit();
             

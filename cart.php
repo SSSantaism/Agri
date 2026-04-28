@@ -56,7 +56,8 @@ foreach ($cartItems as $item) {
         .cart-section { padding:2rem 0; display:flex; gap:2rem; margin-bottom:4rem; }
         .cart-items { flex:2; }
         .cart-summary { flex:1; background:var(--white); padding:1.5rem; border-radius:var(--radius); box-shadow:var(--shadow); height:fit-content; position:sticky; top:100px; }
-        .cart-item { display:flex; gap:1.5rem; background:var(--white); padding:1.5rem; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:1.5rem; }
+        .cart-item { display:flex; align-items:center; gap:1.5rem; background:var(--white); padding:1.5rem; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:1.5rem; }
+        .cart-item-checkbox { width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer; flex-shrink: 0; }
         .cart-item img { width:100px; height:100px; border-radius:8px; object-fit:cover; }
         .item-details { flex:1; }
         .item-title { font-size:1.1rem; font-weight:600; margin-bottom:0.25rem; }
@@ -82,6 +83,7 @@ foreach ($cartItems as $item) {
             <div class="cart-items">
                 <?php foreach($cartItems as $item): ?>
                 <div class="cart-item">
+                    <input type="checkbox" class="cart-item-checkbox" value="<?= $item['id'] ?>" data-price="<?= $item['price'] ?>" data-qty="<?= $item['quantity'] ?>" checked onchange="updateSummary()">
                     <img src="<?= getProductImage($item['image_url']??'') ?>" alt="<?= sanitize($item['name']) ?>" onerror="this.src='https://via.placeholder.com/100'">
                     <div class="item-details">
                         <div class="item-title"><?= sanitize($item['name']) ?></div>
@@ -107,13 +109,46 @@ foreach ($cartItems as $item) {
             </div>
             <div class="cart-summary">
                 <h3 style="margin-bottom:1.5rem;">Ringkasan Belanja</h3>
-                <div class="summary-row"><span>Total Harga (<?= $totalItems ?> barang)</span><span><?= formatRupiah($subtotal) ?></span></div>
+                <div class="summary-row"><span>Total Harga (<span id="summary-total-items"><?= $totalItems ?></span> barang)</span><span id="summary-subtotal"><?= formatRupiah($subtotal) ?></span></div>
                 <div class="summary-row"><span>Diskon</span><span>-</span></div>
-                <div class="summary-total"><span>Total Belanja</span><span><?= formatRupiah($subtotal) ?></span></div>
-                <a href="<?= BASE_URL ?>/checkout.php" class="btn btn-primary" style="width:100%;margin-top:1.5rem;text-align:center;display:block;text-decoration:none;">Beli (<?= $totalItems ?>)</a>
+                <div class="summary-total"><span>Total Belanja</span><span id="summary-grand-total"><?= formatRupiah($subtotal) ?></span></div>
+                <a href="#" onclick="proceedToCheckout(event)" id="btn-checkout" class="btn btn-primary" style="width:100%;margin-top:1.5rem;text-align:center;display:block;text-decoration:none;">Beli (<?= $totalItems ?>)</a>
             </div>
         </div>
         <?php endif; ?>
     </div>
+    <script>
+    function updateSummary() {
+        let subtotal = 0;
+        let totalItems = 0;
+        document.querySelectorAll('.cart-item-checkbox:checked').forEach(cb => {
+            subtotal += parseInt(cb.dataset.price) * parseInt(cb.dataset.qty);
+            totalItems += parseInt(cb.dataset.qty);
+        });
+        
+        document.getElementById('summary-total-items').innerText = totalItems;
+        document.getElementById('summary-subtotal').innerText = 'Rp' + subtotal.toLocaleString('id-ID');
+        document.getElementById('summary-grand-total').innerText = 'Rp' + subtotal.toLocaleString('id-ID');
+        document.getElementById('btn-checkout').innerText = 'Beli (' + totalItems + ')';
+        if (totalItems === 0) {
+            document.getElementById('btn-checkout').style.opacity = '0.5';
+            document.getElementById('btn-checkout').style.pointerEvents = 'none';
+        } else {
+            document.getElementById('btn-checkout').style.opacity = '1';
+            document.getElementById('btn-checkout').style.pointerEvents = 'auto';
+        }
+    }
+    
+    function proceedToCheckout(e) {
+        e.preventDefault();
+        const checked = document.querySelectorAll('.cart-item-checkbox:checked');
+        if (checked.length === 0) {
+            alert('Pilih setidaknya satu produk untuk dibeli.');
+            return;
+        }
+        const ids = Array.from(checked).map(cb => cb.value).join(',');
+        window.location.href = '<?= BASE_URL ?>/checkout.php?items=' + ids;
+    }
+    </script>
 </body>
 </html>
