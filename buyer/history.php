@@ -142,16 +142,16 @@ $statusBadge = [
                 <?php endforeach; ?>
                 <div style="text-align:right;font-weight:700;margin-top:0.5rem;padding-top:0.75rem;border-top:1px solid var(--bg-color);">Total: <?= formatRupiah($order['total']) ?></div>
                 <div style="margin-top:1rem;text-align:right;display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap;">
-                    <?php if(in_array($order['status'], ['shipped','delivered'])): ?>
+                    <?php if(in_array($order['status'], ['shipped'])): ?>
                     <a href="<?= BASE_URL ?>/tracking.php?order_id=<?= $order['id'] ?>" class="btn btn-outline" style="padding:0.5rem 1rem;text-decoration:none;">Lacak Paket</a>
                     <?php endif; ?>
                     <a href="<?= BASE_URL ?>/chat.php?partner=<?= $order['seller_id'] ?>" class="btn btn-primary" style="padding:0.5rem 1rem;text-decoration:none;">Hubungi Penjual</a>
-                    <?php if($order['status'] === 'completed'): ?>
+                    <?php if(in_array($order['status'], ['delivered', 'completed'])): ?>
                         <?php foreach(($orderItems[$order['id']] ?? []) as $item): ?>
                             <?php if(!isset($reviewedProducts[$order['id'].'-'.$item['product_id']])): ?>
-                            <button class="btn btn-outline" style="padding:0.5rem 1rem;" onclick="document.getElementById('review-<?= $order['id'] ?>-<?= $item['product_id'] ?>').style.display='block'">Beri Ulasan</button>
+                            <button class="btn btn-outline" style="padding:0.5rem 1rem;" onclick="document.getElementById('review-<?= $order['id'] ?>-<?= $item['product_id'] ?>').style.display='flex'">Beri Ulasan</button>
                             <!-- Review form (hidden) -->
-                            <div id="review-<?= $order['id'] ?>-<?= $item['product_id'] ?>" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;display:none;align-items:center;justify-content:center;">
+                            <div id="review-<?= $order['id'] ?>-<?= $item['product_id'] ?>" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;">
                                 <form method="POST" style="background:var(--white);padding:2rem;border-radius:var(--radius);max-width:400px;width:90%;">
                                     <h3 style="margin-bottom:1rem;">Beri Ulasan - <?= sanitize($item['name']) ?></h3>
                                     <input type="hidden" name="action" value="review">
